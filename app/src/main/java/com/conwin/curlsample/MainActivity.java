@@ -56,15 +56,33 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
-            String result = CurlRequest.GetHttps("https://api.jingyun.cn/opid2host?opid=test", mCertPath);
+            String result = CurlRequest.PostHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
 
-            Log.i("MainActivity", "域名登陆 响应结果：  " + result);
+            Log.i("MainActivity", " 响应结果：  " + result);
 
             String[] str = result.split(",", 2);
 
             return result;
         }
     }
+
+    private String body = "{\n" +
+            "\"width\":\"1080\",\n" +
+            "\"height\":\"1920\",\n" +
+            "\"verName\":\"1.0.1\",\n" +
+            "\"verCode\":\"1\",\n" +
+            "\"package\":\"con.conwin.smartalarm\",\n" +
+            "\"phoneModel\":\"FRD-DL00\",\n" +
+            "\"phoneBrand\":\"honor\",\n" +
+            "\"systemVer\":\"6.0.1\",\n" +
+            "\"cpuModel\":\"aarch64\",\n" +
+            "\"cpuInstruction\":\"armeabi-v7a\",\n" +
+            "\"cpuInstruction2\":\"armeabi-v7a\",\n" +
+            "\"phoneIMEI\":\"8751615615656\",\n" +
+            "\"root\":\"false\",\n" +
+            "\"time\":\"2018-4-24 12:15:01\",\n" +
+            "\"exception\":\"Java NullException...\"\n" +
+            "}";
 
     private class HttpsDomain {
         private String name;

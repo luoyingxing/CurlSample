@@ -5,7 +5,7 @@ public class CurlRequest {
     static {
         try {
             System.loadLibrary("curl");
-            System.loadLibrary("cwcurl");
+            System.loadLibrary("native-lib");
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -13,5 +13,7 @@ public class CurlRequest {
     }
 
     public static native String GetHttps(String url, String crtPath);
+
+    public static native String PostHttps(String url, String body, String crtPath);
 
 }
