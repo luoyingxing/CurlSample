@@ -224,6 +224,17 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, pUrl);
 
+
+    struct curl_slist *headers = NULL;
+
+    //增加HTTP header
+    headers = curl_slist_append(headers, "Accept:application/json");
+    headers = curl_slist_append(headers, "Content-Type:application/json");
+    headers = curl_slist_append(headers, "charset:utf-8");
+
+
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body); //post参数
     curl_easy_setopt(curl, CURLOPT_POST, 1); //设置问非0表示本次操作为post
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1); //打印调试信息
