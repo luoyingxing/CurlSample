@@ -16,7 +16,7 @@ extern "C"{
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <unistd.h>
-#include "libs/curl.h"
+#include "curl/curl.h"
 /*发起本地调用的java类*/
 #define JNI_REQ_CLASS "com/conwin/curl/CurlRequest"
 
@@ -180,9 +180,6 @@ Java_com_conwin_curl_CurlRequest_GetHttps(JNIEnv *env, jobject obj, jstring url,
 
 
 size_t response_data(void *buffer, size_t size, size_t nmemb, void *stream) {
-    LOGD("response_data");
-
-
     if (size * nmemb < MAX_BUFFER_LEN) {
         memcpy((char *) stream, (char *) buffer, size * nmemb);
     }
@@ -238,8 +235,8 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body); //post参数
     curl_easy_setopt(curl, CURLOPT_POST, 1); //设置问非0表示本次操作为post
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1); //打印调试信息
-//    curl_easy_setopt(curl, CURLOPT_HEADER, 1); //将响应头信息和相应体一起传给write_data
-//    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1); //设置为非0,响应头信息location
+    curl_easy_setopt(curl, CURLOPT_HEADER, 1); //将响应头信息和相应体一起传给write_data
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);           // 超时(单位S)
 
     curl_easy_setopt(curl, CURLFORM_CONTENTTYPE, "application/json");
 
@@ -252,9 +249,9 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     curl_easy_setopt(curl, CURLOPT_SSLKEY, pAndroidKey);
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
 
-    // curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, head_data);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, response_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &receive_data);
+
 
     CURLcode code = curl_easy_perform(curl);
 
