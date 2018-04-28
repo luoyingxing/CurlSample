@@ -56,7 +56,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
 //            String result = CurlRequest.getHttps("https://api.jingyun.cn/opid2host?opid=test", mCertPath);
-            String result = CurlRequest.postHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
+            String result = null;
+            try {
+                result = CurlRequest.postHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             Log.i("MainActivity", " 响应结果：  " + result);
 

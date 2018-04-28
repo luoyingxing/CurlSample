@@ -71,7 +71,6 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
 
     char receive_data[MAX_BUFFER_LEN] = {0};
 
-    curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, pUrl);
 
@@ -213,8 +212,6 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     curl_easy_setopt(curl, CURLOPT_HEADER, 1); //将响应头信息和相应体一起传给write_data
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);           // 超时(单位S)
 
-//    curl_easy_setopt(curl, CURLFORM_CONTENTTYPE, "application/json");
-
     curl_easy_setopt(curl, CURLOPT_CAPATH, caPath);
     curl_easy_setopt(curl, CURLOPT_CAINFO, pCaCrt);
 
@@ -321,8 +318,6 @@ static int registerNatives(JNIEnv *env) {
     return JNI_TRUE;
 }
 
-// Set some test stuff up.
-//
 // Returns the JNI version on success, -1 on failure.
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     LOGD("JNI_OnLoad");
@@ -340,6 +335,9 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     g_env = env;
 
     result = JNI_VERSION_1_4;
+
+    LOGD("curl_global_init...");
+    curl_global_init(CURL_GLOBAL_ALL);
 
     return result;
 }
