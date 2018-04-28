@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.conwin.curl.CurlRequest;
-import com.conwin.curl.Test;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -56,7 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
-            String result = CurlRequest.PostHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
+//            String result = CurlRequest.getHttps("https://api.jingyun.cn/opid2host?opid=test", mCertPath);
+            String result = CurlRequest.postHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
 
             Log.i("MainActivity", " 响应结果：  " + result);
 

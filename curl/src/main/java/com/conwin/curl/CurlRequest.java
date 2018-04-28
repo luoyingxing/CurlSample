@@ -12,8 +12,8 @@ public class CurlRequest {
 
     }
 
-    public static native String GetHttps(String url, String crtPath);
+    public static native String getHttps(String url, String crtPath);
 
-    public static native String PostHttps(String url, String body, String crtPath);
+    public static native String postHttps(String url, String body, String crtPath);
 
 }

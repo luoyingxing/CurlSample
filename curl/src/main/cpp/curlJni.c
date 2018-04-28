@@ -1,5 +1,5 @@
 //
-// Created by Gimo on 2017/3/14.
+// Created by luoyingxing on 2018/4/27.
 //
 
 
@@ -17,48 +17,24 @@ extern "C"{
 #include <android/asset_manager_jni.h>
 #include <unistd.h>
 #include "curl/curl.h"
-/*发起本地调用的java类*/
+
 #define JNI_REQ_CLASS "com/conwin/curl/CurlRequest"
 
-/*接收反射回调的java类*/
-#define JNI_RES_CLASS "com/conwin/curl/CurlResponse"
-
-JavaVM *g_jvm_j;
 JNIEnv *g_env;
-jclass g_res_class = NULL;
-jclass g_post_class = NULL;
-
-jmethodID g_method_onGetHttps = NULL;
-jmethodID g_method_PostGetHttps = NULL;
 
 #define LOG_TAG "curl"
 
-#define LOGW(a) __android_log_write(ANDROID_LOG_WARN, LOG_TAG, a)
 #define LOGD(a) __android_log_write(ANDROID_LOG_DEBUG, LOG_TAG, a)
 #define LOGI(a) __android_log_write(ANDROID_LOG_INFO, LOG_TAG, a)
 #define LOGE(a) __android_log_write(ANDROID_LOG_ERROR, LOG_TAG, a)
+#define LOGW(a) __android_log_write(ANDROID_LOG_WARN, LOG_TAG, a)
 
 #define MAX_BUFFER_LEN 1024
-
-size_t head_data(void *ptr, size_t size, size_t nmemb, void *stream) {
-
-    if (g_env != NULL && g_method_onGetHttps != NULL) {
-        LOGW("jni head_data");
-        jstring result = (*g_env)->NewStringUTF(g_env, (char *) ptr);
-        (*g_env)->CallStaticVoidMethod(g_env, g_res_class, g_method_onGetHttps, 225, result);
-        (*g_env)->DeleteLocalRef(g_env, result);
-
-    } else {
-
-    }
-    return size * nmemb;
-}
 
 size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream) {
     if (size * nmemb < MAX_BUFFER_LEN) {
         memcpy((char *) stream, (char *) ptr, size * nmemb);
     }
-    // resHttps(200,ptr);
     return size * nmemb;
 }
 
@@ -85,9 +61,6 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
     strcat(pAndroidCrt, "/ANDROID.crt");
 
     LOGD(caPath);
-    LOGD(pCaCrt);
-    LOGD(pAndroidKey);
-    LOGD(pAndroidCrt);
 
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
     char url[255] = {0};
@@ -111,7 +84,6 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
     curl_easy_setopt(curl, CURLOPT_SSLKEY, pAndroidKey);
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
 
-    // curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, head_data);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &receive_data);
 
@@ -119,44 +91,44 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
 
     char log[100] = {0};
     sprintf(log, "curl easy perform result: %d", code);
-    LOGW(log);
+    LOGD(log);
 
-    LOGD("reqHttps 3");
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        strcpy(buffer, "-1");
+        char res[10] = {0};
+        sprintf(res, "%d", code);
+        strcpy(buffer, res);
         return;
     }
 
-    LOGD("reqHttps 4");
     long statusCode = 0;
     code = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        strcpy(buffer, "-2");
+        char res[10] = {0};
+        sprintf(res, "%d", code);
+        strcpy(buffer, res);
         return;
     }
 
-    LOGD("reqHttps 5");
     if (statusCode != 200) {
         curl_easy_cleanup(curl);
-
         char str[25] = {0};
         sprintf(str, "%ld", statusCode);
         strcpy(buffer, str);
         return;
     }
 
-
     if (strlen(receive_data) == 0) {
         curl_easy_cleanup(curl);
-        strcpy(buffer, "-5");
+        char res[10] = {0};
+        sprintf(res, "%d", code);
+        strcpy(buffer, res);
         return;
     }
 
     strcpy(buffer, "200,");
     strcat(buffer, receive_data);
-    LOGD("reqHttps 6");
 
     curl_easy_cleanup(curl);
     return;
@@ -171,7 +143,7 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
  * @return string 返回结果
  */
 JNIEXPORT jstring JNICALL
-Java_com_conwin_curl_CurlRequest_GetHttps(JNIEnv *env, jobject obj, jstring url, jstring crtPath) {
+Java_com_conwin_curl_CurlRequest_getHttps(JNIEnv *env, jobject obj, jstring url, jstring crtPath) {
     char buffer[MAX_BUFFER_LEN + 3] = {0};
     reqHttps(env, url, crtPath, buffer);
     jstring result = (*g_env)->NewStringUTF(g_env, buffer);
@@ -187,6 +159,14 @@ size_t response_data(void *buffer, size_t size, size_t nmemb, void *stream) {
     return size * nmemb;
 }
 
+/**
+ *
+ * @param env
+ * @param sUrl
+ * @param crtPath
+ * @param body
+ * @param buffer
+ */
 void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *buffer) {
     const char *caPath = (*env)->GetStringUTFChars(env, crtPath, 0);
     const char *request_body = (*env)->GetStringUTFChars(env, body, 0);
@@ -199,14 +179,11 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     strcat(pAndroidKey, caPath);
     strcat(pAndroidCrt, caPath);
 
+    LOGD(caPath);
+
     strcat(pCaCrt, "/jingyun.root.pem");
     strcat(pAndroidKey, "/ANDROID.key");
     strcat(pAndroidCrt, "/ANDROID.crt");
-
-    LOGD(caPath);
-    LOGD(pCaCrt);
-    LOGD(pAndroidKey);
-    LOGD(pAndroidCrt);
 
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
     char url[255] = {0};
@@ -221,14 +198,12 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, pUrl);
 
-
     struct curl_slist *headers = NULL;
 
     //增加HTTP header
     headers = curl_slist_append(headers, "Accept:application/json");
     headers = curl_slist_append(headers, "Content-Type:application/json");
     headers = curl_slist_append(headers, "charset:utf-8");
-
 
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
@@ -238,7 +213,7 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     curl_easy_setopt(curl, CURLOPT_HEADER, 1); //将响应头信息和相应体一起传给write_data
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);           // 超时(单位S)
 
-    curl_easy_setopt(curl, CURLFORM_CONTENTTYPE, "application/json");
+//    curl_easy_setopt(curl, CURLFORM_CONTENTTYPE, "application/json");
 
     curl_easy_setopt(curl, CURLOPT_CAPATH, caPath);
     curl_easy_setopt(curl, CURLOPT_CAINFO, pCaCrt);
@@ -257,51 +232,51 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
 
     char log[100] = {0};
     sprintf(log, "curl easy perform result: %d", code);
-    LOGW(log);
+    LOGD(log);
 
-    LOGD("reqHttps 3");
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        strcpy(buffer, "-1");
+        char res[10] = {0};
+        sprintf(res, "%d", code);
+        strcpy(buffer, res);
         return;
     }
 
-    LOGD("reqHttps 4");
     long statusCode = 0;
     code = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        strcpy(buffer, "-2");
+        char res[10] = {0};
+        sprintf(res, "%d", code);
+        strcpy(buffer, res);
         return;
     }
 
-    LOGD("reqHttps 5");
     if (statusCode != 200) {
         curl_easy_cleanup(curl);
-
         char str[25] = {0};
         sprintf(str, "%ld", statusCode);
         strcpy(buffer, str);
         return;
     }
 
-
     if (strlen(receive_data) == 0) {
         curl_easy_cleanup(curl);
-        strcpy(buffer, "-5");
+        char res[10] = {0};
+        sprintf(res, "%d", code);
+        strcpy(buffer, res);
         return;
     }
 
     strcpy(buffer, "200,");
     strcat(buffer, receive_data);
-    LOGD("reqHttps 6");
 
     curl_easy_cleanup(curl);
     return;
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_conwin_curl_CurlRequest_PostHttps(JNIEnv *env, jobject obj, jstring url, jstring body,
+Java_com_conwin_curl_CurlRequest_postHttps(JNIEnv *env, jobject obj, jstring url, jstring body,
                                            jstring crtPath) {
     char buffer[MAX_BUFFER_LEN + 3] = {0};
     postHttps(env, url, crtPath, body, buffer);
@@ -310,8 +285,8 @@ Java_com_conwin_curl_CurlRequest_PostHttps(JNIEnv *env, jobject obj, jstring url
 }
 
 static JNINativeMethod gMethods[] = {
-        {"GetHttps",  "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",                   (void *) Java_com_conwin_curl_CurlRequest_GetHttps},
-        {"PostHttps", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", (void *) Java_com_conwin_curl_CurlRequest_PostHttps}
+        {"getHttps",  "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",                   (void *) Java_com_conwin_curl_CurlRequest_getHttps},
+        {"postHttps", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", (void *) Java_com_conwin_curl_CurlRequest_postHttps}
 };
 
 static int registerNativeMethods(JNIEnv *env, const char *className, JNINativeMethod *gMethods,
@@ -351,7 +326,6 @@ static int registerNatives(JNIEnv *env) {
 // Returns the JNI version on success, -1 on failure.
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     LOGD("JNI_OnLoad");
-    g_jvm_j = vm;
 
     JNIEnv *env = NULL;
     jint result = -1;
@@ -365,35 +339,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     g_env = env;
 
-    /* success -- return valid version number */
     result = JNI_VERSION_1_4;
-
-    jclass tmp = (*env)->FindClass(env, JNI_RES_CLASS);
-    g_res_class = (jclass) ((*env)->NewGlobalRef(env, tmp));
-
-    jclass post_https = (*env)->FindClass(env, JNI_RES_CLASS);
-    g_post_class = (jclass) ((*env)->NewGlobalRef(env, post_https));
-
-    if (g_res_class != NULL) {
-        g_method_onGetHttps = (*env)->GetStaticMethodID(env, g_res_class, "onGetHttps",
-                                                        "(ILjava/lang/String;)V");
-//        g_method_onVarPost = (*env)->GetStaticMethodID(env,g_res_class,"onVarsPost","(I[B)I");
-//        g_method_onResponse = (*env)->GetStaticMethodID(env,g_res_class,"onResponse","(II[B[B)I");
-//        g_method_connect = (*env)->GetStaticMethodID(env,g_res_class,"onConnect","(I[B)I");
-//        g_method_outPutDebugString = (*env)->GetStaticMethodID(env,g_res_class,"outPutDebugString","(Ljava/lang/String;)V");
-//        g_method_followed_update = (*env)->GetStaticMethodID(env,g_res_class,"followedUpdate","(ILjava/lang/String;)V");;
-    }
-
-    if (g_post_class != NULL) {
-        g_method_PostGetHttps = (*env)->GetStaticMethodID(env, g_post_class, "onGetHttps",
-                                                          "(ILjava/lang/String;)V");
-//        g_method_onVarPost = (*env)->GetStaticMethodID(env,g_res_class,"onVarsPost","(I[B)I");
-//        g_method_onResponse = (*env)->GetStaticMethodID(env,g_res_class,"onResponse","(II[B[B)I");
-//        g_method_connect = (*env)->GetStaticMethodID(env,g_res_class,"onConnect","(I[B)I");
-//        g_method_outPutDebugString = (*env)->GetStaticMethodID(env,g_res_class,"outPutDebugString","(Ljava/lang/String;)V");
-//        g_method_followed_update = (*env)->GetStaticMethodID(env,g_res_class,"followedUpdate","(ILjava/lang/String;)V");;
-    }
-
 
     return result;
 }
