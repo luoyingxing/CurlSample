@@ -1,4 +1,6 @@
 //
+// curl request
+//
 // Created by luoyingxing on 2018/4/27.
 //
 
@@ -15,12 +17,10 @@ extern "C"{
 #include <unistd.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
-#include <unistd.h>
 #include "curl/curl.h"
+#include "curl/easy.h"
 
 #define JNI_REQ_CLASS "com/conwin/curl/CurlRequest"
-
-JNIEnv *g_env;
 
 #define LOG_TAG "curl"
 
@@ -87,24 +87,24 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &receive_data);
 
     CURLcode code = curl_easy_perform(curl);
-
-    char log[100] = {0};
+    char log[64] = {0};
     sprintf(log, "curl easy perform result: %d", code);
     LOGD(log);
 
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        char res[10] = {0};
+        char res[64] = {0};
         sprintf(res, "%d", code);
         strcpy(buffer, res);
         return;
+
     }
 
     long statusCode = 0;
     code = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        char res[10] = {0};
+        char res[64] = {0};
         sprintf(res, "%d", code);
         strcpy(buffer, res);
         return;
@@ -112,7 +112,7 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
 
     if (statusCode != 200) {
         curl_easy_cleanup(curl);
-        char str[25] = {0};
+        char str[64] = {0};
         sprintf(str, "%ld", statusCode);
         strcpy(buffer, str);
         return;
@@ -120,7 +120,7 @@ void reqHttps(JNIEnv *env, jstring sUrl, jstring crtPath, char *buffer) {
 
     if (strlen(receive_data) == 0) {
         curl_easy_cleanup(curl);
-        char res[10] = {0};
+        char res[64] = {0};
         sprintf(res, "%d", code);
         strcpy(buffer, res);
         return;
@@ -145,16 +145,23 @@ JNIEXPORT jstring JNICALL
 Java_com_conwin_curl_CurlRequest_getHttps(JNIEnv *env, jobject obj, jstring url, jstring crtPath) {
     char buffer[MAX_BUFFER_LEN + 3] = {0};
     reqHttps(env, url, crtPath, buffer);
-    jstring result = (*g_env)->NewStringUTF(g_env, buffer);
+    jstring result = (*env)->NewStringUTF(env, buffer);
     return result;
 }
 
 
+/**
+ *
+ * @param buffer
+ * @param size
+ * @param nmemb
+ * @param stream
+ * @return
+ */
 size_t response_data(void *buffer, size_t size, size_t nmemb, void *stream) {
     if (size * nmemb < MAX_BUFFER_LEN) {
         memcpy((char *) stream, (char *) buffer, size * nmemb);
     }
-
     return size * nmemb;
 }
 
@@ -227,13 +234,13 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
 
     CURLcode code = curl_easy_perform(curl);
 
-    char log[100] = {0};
+    char log[64] = {0};
     sprintf(log, "curl easy perform result: %d", code);
     LOGD(log);
 
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        char res[10] = {0};
+        char res[64] = {0};
         sprintf(res, "%d", code);
         strcpy(buffer, res);
         return;
@@ -243,7 +250,7 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
     code = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
     if (code != CURLE_OK) {
         curl_easy_cleanup(curl);
-        char res[10] = {0};
+        char res[64] = {0};
         sprintf(res, "%d", code);
         strcpy(buffer, res);
         return;
@@ -251,7 +258,7 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
 
     if (statusCode != 200) {
         curl_easy_cleanup(curl);
-        char str[25] = {0};
+        char str[64] = {0};
         sprintf(str, "%ld", statusCode);
         strcpy(buffer, str);
         return;
@@ -259,7 +266,7 @@ void postHttps(JNIEnv *env, jstring sUrl, jstring crtPath, jstring body, char *b
 
     if (strlen(receive_data) == 0) {
         curl_easy_cleanup(curl);
-        char res[10] = {0};
+        char res[64] = {0};
         sprintf(res, "%d", code);
         strcpy(buffer, res);
         return;
@@ -277,17 +284,18 @@ Java_com_conwin_curl_CurlRequest_postHttps(JNIEnv *env, jobject obj, jstring url
                                            jstring crtPath) {
     char buffer[MAX_BUFFER_LEN + 3] = {0};
     postHttps(env, url, crtPath, body, buffer);
-    jstring result = (*g_env)->NewStringUTF(g_env, buffer);
+    jstring result = (*env)->NewStringUTF(env, buffer);
     return result;
 }
 
-static JNINativeMethod gMethods[] = {
+static JNINativeMethod methods[] = {
         {"getHttps",  "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",                   (void *) Java_com_conwin_curl_CurlRequest_getHttps},
         {"postHttps", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", (void *) Java_com_conwin_curl_CurlRequest_postHttps}
+
 };
 
-static int registerNativeMethods(JNIEnv *env, const char *className, JNINativeMethod *gMethods,
-                                 int numMethods) {
+static int registerNativeMethods(JNIEnv *env, const char *className,
+                                 JNINativeMethod *method, int numMethods) {
     jclass clazz;
     clazz = (*env)->FindClass(env, className);
 
@@ -297,28 +305,27 @@ static int registerNativeMethods(JNIEnv *env, const char *className, JNINativeMe
 
     LOGD(className);
 
-    if ((*env)->RegisterNatives(env, clazz, gMethods, numMethods) < 0) {
+    if ((*env)->RegisterNatives(env, clazz, method, numMethods) < 0) {
         return JNI_FALSE;
     }
 
     return JNI_TRUE;
 }
 
-//Register native methods for all classes we know about.
 static int registerNatives(JNIEnv *env) {
-    if (!registerNativeMethods(env, JNI_REQ_CLASS, gMethods,
-                               sizeof(gMethods) / sizeof(gMethods[0]))) {
+    if (!registerNativeMethods(env, JNI_REQ_CLASS, methods,
+                               sizeof(methods) / sizeof(methods[0]))) {
         return JNI_FALSE;
     }
 
-    if (!registerNativeMethods(env, JNI_REQ_CLASS, gMethods,
-                               sizeof(gMethods) / sizeof(gMethods[1]))) {
+    if (!registerNativeMethods(env, JNI_REQ_CLASS, methods,
+                               sizeof(methods) / sizeof(methods[1]))) {
         return JNI_FALSE;
     }
+
     return JNI_TRUE;
 }
 
-// Returns the JNI version on success, -1 on failure.
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     LOGD("JNI_OnLoad");
 
@@ -332,11 +339,9 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         return -1;
     }
 
-    g_env = env;
-
     result = JNI_VERSION_1_4;
 
-    LOGD("curl_global_init...");
+    LOGD("curl_global_init...now");
     curl_global_init(CURL_GLOBAL_ALL);
 
     return result;
