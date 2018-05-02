@@ -5,17 +5,29 @@ import android.util.Log;
 /**
  * CurlResponse
  * <p>
- * Created by Gimo on 2017/3/14.
+ * Created by luoyingxing on 2018/5/3.
  */
 
 public class CurlResponse {
+    public static onResponseListener mOnResponseListener;
 
-    static void onGetHttps(int status, String data) {
-        String log = "https res status code :" + status;
-        if (status == 200) {
-            log = log + ",data :" + data;
+    static void onResponse(int id, int status, String data) {
+        Log.i("CurlResponse", "id:" + id + " status:" + status + " data:" + data);
+
+        if (null != mOnResponseListener) {
+            mOnResponseListener.onResponse(id, status, data);
         }
-        Log.i("CurlResponse", log);
     }
 
+    public interface onResponseListener {
+        void onResponse(int id, int status, String data);
+    }
+
+    public static onResponseListener getResponseListener() {
+        return mOnResponseListener;
+    }
+
+    public static void setOnResponseListener(onResponseListener listener) {
+        CurlResponse.mOnResponseListener = listener;
+    }
 }

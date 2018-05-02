@@ -8,9 +8,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.conwin.curl.CurlRequest;
+import com.conwin.curl.CurlResponse;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CurlResponse.onResponseListener {
     private String mCertPath;
     private TextView tv;
 
@@ -23,12 +24,26 @@ public class MainActivity extends AppCompatActivity {
         tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new LoginAsy().execute();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        CurlRequest.getHttps(8788, "https://api.jingyun.cn/opid2host?opid=test", mCertPath + "/jingyun.root.pem", mCertPath + "/ANDROID.key", mCertPath + "/ANDROID.crt");
+                        CurlRequest.postHttps(4566, "https://cos.conwin.cn:8443/log/crash", body, mCertPath + "/jingyun.root.pem", mCertPath + "/ANDROID.key", mCertPath + "/ANDROID.crt");
+                    }
+                }).start();
+//                new LoginAsy().execute();
             }
         });
 
         mCertPath = getFilesDir().getAbsolutePath() + "/cert";
         SSLUtils.initSSL(this, mCertPath);
+
+        CurlResponse.setOnResponseListener(this);
+    }
+
+    @Override
+    public void onResponse(int id, int status, String data) {
+        Log.e("MainActivity", "data-->  " + data);
     }
 
     private class LoginAsy extends AsyncTask<String, Integer, String> {
@@ -57,11 +72,11 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
 //            String result = CurlRequest.getHttps("https://api.jingyun.cn/opid2host?opid=test", mCertPath);
             String result = null;
-            try {
-                result = CurlRequest.postHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            try {
+//                result = CurlRequest.postHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
             Log.i("MainActivity", " 响应结果：  " + result);
 

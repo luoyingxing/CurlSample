@@ -9,11 +9,29 @@ public class CurlRequest {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-
     }
 
-    public static native String getHttps(String url, String crtPath);
+    /**
+     * 发送GET请求
+     *
+     * @param id  请求id
+     * @param url 请求URL
+     * @param pem pen证书绝对路径
+     * @param key key密匙绝对路径
+     * @param crt crt证书绝对路径
+     */
+    public static native void getHttps(int id, String url, String pem, String key, String crt);
 
-    public static native String postHttps(String url, String body, String crtPath);
+    /**
+     * 发送POST请求
+     *
+     * @param id   请求id
+     * @param url  请求URL
+     * @param body 请求体
+     * @param pem  pen证书绝对路径
+     * @param key  key密匙绝对路径
+     * @param crt  crt证书绝对路径
+     */
+    public static native void postHttps(int id, String url, String body, String pem, String key, String crt);
 
 }
