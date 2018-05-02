@@ -1,7 +1,5 @@
 package com.conwin.curl;
 
-import android.util.Log;
-
 /**
  * CurlResponse
  * <p>
@@ -9,25 +7,23 @@ import android.util.Log;
  */
 
 public class CurlResponse {
-    public static onResponseListener mOnResponseListener;
+    protected static ResponseListener mResponseListener;
 
-    static void onResponse(int id, int status, String data) {
-        Log.i("CurlResponse", "id:" + id + " status:" + status + " data:" + data);
-
-        if (null != mOnResponseListener) {
-            mOnResponseListener.onResponse(id, status, data);
+    protected static void onResponse(int id, int status, String data) {
+        if (null != mResponseListener) {
+            mResponseListener.onResponse(id, status, data);
         }
     }
 
-    public interface onResponseListener {
+    protected interface ResponseListener {
         void onResponse(int id, int status, String data);
     }
 
-    public static onResponseListener getResponseListener() {
-        return mOnResponseListener;
+    protected static ResponseListener getResponseListener() {
+        return mResponseListener;
     }
 
-    public static void setOnResponseListener(onResponseListener listener) {
-        CurlResponse.mOnResponseListener = listener;
+    protected static void setOnResponseListener(ResponseListener listener) {
+        CurlResponse.mResponseListener = listener;
     }
 }

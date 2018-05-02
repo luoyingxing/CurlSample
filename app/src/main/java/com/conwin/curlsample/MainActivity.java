@@ -1,17 +1,14 @@
 package com.conwin.curlsample;
 
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.conwin.curl.CurlRequest;
-import com.conwin.curl.CurlResponse;
+import com.conwin.curl.HttpsRequest;
 
-
-public class MainActivity extends AppCompatActivity implements CurlResponse.onResponseListener {
+public class MainActivity extends AppCompatActivity {
     private String mCertPath;
     private TextView tv;
 
@@ -24,66 +21,88 @@ public class MainActivity extends AppCompatActivity implements CurlResponse.onRe
         tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        CurlRequest.getHttps(8788, "https://api.jingyun.cn/opid2host?opid=test", mCertPath + "/jingyun.root.pem", mCertPath + "/ANDROID.key", mCertPath + "/ANDROID.crt");
-                        CurlRequest.postHttps(4566, "https://cos.conwin.cn:8443/log/crash", body, mCertPath + "/jingyun.root.pem", mCertPath + "/ANDROID.key", mCertPath + "/ANDROID.crt");
-                    }
-                }).start();
-//                new LoginAsy().execute();
+                request();
             }
         });
 
         mCertPath = getFilesDir().getAbsolutePath() + "/cert";
         SSLUtils.initSSL(this, mCertPath);
-
-        CurlResponse.setOnResponseListener(this);
     }
 
-    @Override
-    public void onResponse(int id, int status, String data) {
-        Log.e("MainActivity", "data-->  " + data);
-    }
+    public void request() {
+        new HttpsRequest<Object>("https://api.jingyun.cn/opid2host") {
 
-    private class LoginAsy extends AsyncTask<String, Integer, String> {
+            @Override
+            public void onStart() {
+                super.onStart();
+                Log.i("MainActivity", "onStart()");
+            }
 
-        LoginAsy() {
-        }
+            @Override
+            public void onSuccess(Object result) {
+                super.onSuccess(result);
+                Log.i("MainActivity", "onSuccess()");
+            }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
+            @Override
+            public void onResult(int status, String data) {
+                super.onResult(status, data);
+                Log.i("onResult", "onResult() status:" + status + "  data:" + data);
+                tv.append("\nget\n");
+                tv.append(data);
+            }
 
-        @Override
-        protected void onPostExecute(String domain) {
-            super.onPostExecute(domain);
-            Log.d("MainActivity", "onPostExecute");
-            tv.setText("响应结果： " + domain);
-        }
+            @Override
+            public void onFinish() {
+                super.onFinish();
+                Log.i("MainActivity", "onFinish()");
+            }
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
+            @Override
+            public void onFailure(int status, String data) {
+                super.onFailure(status, data);
+                Log.i("MainActivity", "onFailure()");
+            }
 
-        @Override
-        protected String doInBackground(String... params) {
-//            String result = CurlRequest.getHttps("https://api.jingyun.cn/opid2host?opid=test", mCertPath);
-            String result = null;
-//            try {
-//                result = CurlRequest.postHttps("https://cos.conwin.cn:8443/log/crash", body, mCertPath);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
+        }.addParam("opid", "test")
+                .get();
 
-            Log.i("MainActivity", " 响应结果：  " + result);
+        new HttpsRequest<Object>("https://cos.conwin.cn:8443/log/crash") {
 
-            String[] str = result.split(",", 2);
+            @Override
+            public void onStart() {
+                super.onStart();
+                Log.i("MainActivity----", "onStart()");
+            }
 
-            return result;
-        }
+            @Override
+            public void onSuccess(Object result) {
+                super.onSuccess(result);
+                Log.i("MainActivity----", "onSuccess()");
+            }
+
+            @Override
+            public void onResult(int status, String data) {
+                super.onResult(status, data);
+                Log.i("onResult----", "onResult() status:" + status + "  data:" + data);
+                tv.append("\npost\n");
+                tv.append(data == null ? "data is null" : data);
+            }
+
+            @Override
+            public void onFinish() {
+                super.onFinish();
+                Log.i("MainActivity----", "onFinish()");
+            }
+
+            @Override
+            public void onFailure(int status, String data) {
+                super.onFailure(status, data);
+                Log.i("MainActivity----", "onFailure()");
+            }
+
+        }.addBody(body)
+                .post();
     }
 
     private String body = "{\n" +
@@ -104,34 +123,5 @@ public class MainActivity extends AppCompatActivity implements CurlResponse.onRe
             "\"exception\":\"Java NullException...\"\n" +
             "}";
 
-    private class HttpsDomain {
-        private String name;
-        private String host;
-        private int port;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getHost() {
-            return host;
-        }
-
-        public void setHost(String host) {
-            this.host = host;
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        public void setPort(int port) {
-            this.port = port;
-        }
-    }
 
 }
