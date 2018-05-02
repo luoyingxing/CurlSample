@@ -91,10 +91,6 @@ reqHttps(JNIEnv *env, jint id, jstring sUrl, jstring pem, jstring key, jstring c
     strcat(pAndroidKey, keyPath);
     strcat(pAndroidCrt, crtsPath);
 
-//    LOGW(pCaCrt);
-//    LOGW(pAndroidKey);
-//    LOGW(pAndroidCrt);
-
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
     char url[255] = {0};
     sprintf(url, "Access: %s", pUrl);
@@ -151,7 +147,6 @@ reqHttps(JNIEnv *env, jint id, jstring sUrl, jstring pem, jstring key, jstring c
 JNIEXPORT void JNICALL
 Java_com_conwin_curl_CurlRequest_getHttps(JNIEnv *env, jobject obj, jint id, jstring url,
                                           jstring pem, jstring key, jstring crt) {
-//    char buffer[MAX_BUFFER_LEN + 3] = {0};
     reqHttps(env, id, url, pem, key, crt);
 }
 
@@ -196,10 +191,6 @@ void postHttps(JNIEnv *env, jint id, jstring sUrl, jstring body, jstring pem,
     strcat(pCaCrt, pemPath);
     strcat(pAndroidKey, keyPath);
     strcat(pAndroidCrt, crtsPath);
-
-//    LOGW(pCaCrt);
-//    LOGW(pAndroidKey);
-//    LOGW(pAndroidCrt);
 
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
     char url[255] = {0};
@@ -272,7 +263,6 @@ JNIEXPORT void JNICALL
 Java_com_conwin_curl_CurlRequest_postHttps(JNIEnv *env, jobject obj, jint id, jstring url,
                                            jstring body, jstring pem, jstring key,
                                            jstring crt) {
-//    char buffer[MAX_BUFFER_LEN + 3] = {0};
     postHttps(env, id, url, body, pem, key, crt);
 }
 
