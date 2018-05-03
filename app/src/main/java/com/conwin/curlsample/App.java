@@ -14,7 +14,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Curl.getSingleton().initialize(getFilesDir().getAbsolutePath() + "/cert/jingyun.root.pem",
+        Curl.getInstance().initialize(getFilesDir().getAbsolutePath() + "/cert/jingyun.root.pem",
                 getFilesDir().getAbsolutePath() + "/cert/ANDROID.key",
                 getFilesDir().getAbsolutePath() + "/cert/ANDROID.crt");
     }

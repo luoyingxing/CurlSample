@@ -11,7 +11,7 @@ import java.util.List;
  * date: 2018/5/2.
  */
 public class Curl implements CurlResponse.ResponseListener {
-    private volatile static Curl singleton;
+    private volatile static Curl instance;
     private String pemPath;
     private String keyPath;
     private String crtPath;
@@ -31,15 +31,15 @@ public class Curl implements CurlResponse.ResponseListener {
         CurlResponse.setOnResponseListener(this);
     }
 
-    public static Curl getSingleton() {
-        if (null == singleton) {
+    public static Curl getInstance() {
+        if (null == instance) {
             synchronized (Curl.class) {
-                if (null == singleton) {
-                    singleton = new Curl();
+                if (null == instance) {
+                    instance = new Curl();
                 }
             }
         }
-        return singleton;
+        return instance;
     }
 
     /**
