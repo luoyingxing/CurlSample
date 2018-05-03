@@ -121,8 +121,8 @@ public class HttpsRequest<T> {
     }
 
     private void request() {
-        setId(Curl.getSingleton().getFreeRequestId());
-        Curl.getSingleton().addRequest(this);
+        setId(Curl.getInstance().getFreeRequestId());
+        Curl.getInstance().addRequest(this);
 
         if (0 == requestMethod) {
             String params = paramsToString(mParamKeyValues);
@@ -130,9 +130,9 @@ public class HttpsRequest<T> {
                 url = url + "?" + params;
             }
 
-            CurlRequest.getHttps(id, url, Curl.getSingleton().getPemPath(), Curl.getSingleton().getKeyPath(), Curl.getSingleton().getCrtPath());
+            CurlRequest.getHttps(id, url, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         } else {
-            CurlRequest.postHttps(id, url, body, Curl.getSingleton().getPemPath(), Curl.getSingleton().getKeyPath(), Curl.getSingleton().getCrtPath());
+            CurlRequest.postHttps(id, url, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         }
     }
 
