@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.4.1)
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             cwcurl
+             curls
 
              # Sets the library as a shared library.
              SHARED
@@ -28,7 +28,7 @@ set_target_properties(
     crypto
     PROPERTIES IMPORTED_LOCATION
     # change path when ues other computer
-    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcrypto.so
+    E:/androidProject/CurlSampleOrign/curl/src/main/cpp/libs/libcrypto.so
     )
 
 include_directories(
@@ -44,7 +44,7 @@ set_target_properties(
     curl
     PROPERTIES IMPORTED_LOCATION
     # change path when ues other computer
-    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcurl.so
+    E:/androidProject/CurlSampleOrign/curl/src/main/cpp/libs/libcurl.so
     )
 
 include_directories(
@@ -60,7 +60,7 @@ set_target_properties(
     ssl
     PROPERTIES IMPORTED_LOCATION
     # change path when ues other computer
-    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libssl.so
+    E:/androidProject/CurlSampleOrign/curl/src/main/cpp/libs/libssl.so
     )
 
 include_directories(
@@ -84,7 +84,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       cwcurl
+                       curls
                        crypto
                        curl
                        ssl
