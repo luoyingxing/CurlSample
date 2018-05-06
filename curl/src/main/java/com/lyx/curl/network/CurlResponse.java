@@ -1,4 +1,4 @@
-package com.conwin.curl;
+package com.lyx.curl.network;
 
 /**
  * CurlResponse

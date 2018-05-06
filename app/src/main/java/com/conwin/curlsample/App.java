@@ -2,7 +2,7 @@ package com.conwin.curlsample;
 
 import android.app.Application;
 
-import com.conwin.curl.Curl;
+import com.lyx.curl.network.Curl;
 
 /**
  * author:  luoyingxing

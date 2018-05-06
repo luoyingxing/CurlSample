@@ -21,11 +21,11 @@ extern "C"{
 #include "curl/curl.h"
 #include "curl/easy.h"
 
-#define JNI_REQ_CLASS "com/conwin/curl/CurlRequest"
+#define JNI_REQ_CLASS "com/lyx/curl/network/CurlRequest"
 
-#define JNI_RES_CLASS "com/conwin/curl/CurlResponse"
+#define JNI_RES_CLASS "com/lyx/curl/network/CurlResponse"
 
-#define LOG_TAG "libcwcurl"
+#define LOG_TAG "lib-curl"
 
 jclass g_res_class = NULL;
 jmethodID g_method_onResponse = NULL;
@@ -145,7 +145,7 @@ reqHttps(JNIEnv *env, jint id, jstring sUrl, jstring pem, jstring key, jstring c
  * @param crt
  */
 JNIEXPORT void JNICALL
-Java_com_conwin_curl_CurlRequest_getHttps(JNIEnv *env, jobject obj, jint id, jstring url,
+Java_com_lyx_curl_network_CurlRequest_getHttps(JNIEnv *env, jobject obj, jint id, jstring url,
                                           jstring pem, jstring key, jstring crt) {
     reqHttps(env, id, url, pem, key, crt);
 }
@@ -260,7 +260,7 @@ void postHttps(JNIEnv *env, jint id, jstring sUrl, jstring body, jstring pem,
  * @param crt
  */
 JNIEXPORT void JNICALL
-Java_com_conwin_curl_CurlRequest_postHttps(JNIEnv *env, jobject obj, jint id, jstring url,
+Java_com_lyx_curl_network_CurlRequest_postHttps(JNIEnv *env, jobject obj, jint id, jstring url,
                                            jstring body, jstring pem, jstring key,
                                            jstring crt) {
     postHttps(env, id, url, body, pem, key, crt);
@@ -270,8 +270,8 @@ Java_com_conwin_curl_CurlRequest_postHttps(JNIEnv *env, jobject obj, jint id, js
  * GET、POST请求的方法定义
  */
 static JNINativeMethod methods[] = {
-        {"getHttps",  "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",                   (void *) Java_com_conwin_curl_CurlRequest_getHttps},
-        {"postHttps", "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) Java_com_conwin_curl_CurlRequest_postHttps}
+        {"getHttps",  "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",                   (void *) Java_com_lyx_curl_network_CurlRequest_getHttps},
+        {"postHttps", "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) Java_com_lyx_curl_network_CurlRequest_postHttps}
 };
 
 /**

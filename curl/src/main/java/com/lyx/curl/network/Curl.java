@@ -1,4 +1,4 @@
-package com.conwin.curl;
+package com.lyx.curl.network;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -61,7 +61,7 @@ public class Curl implements CurlResponse.ResponseListener {
     private void loadLibrary() {
         try {
             System.loadLibrary("curl");
-            System.loadLibrary("cwcurl");
+            System.loadLibrary("curls");
         } catch (Throwable e) {
             e.printStackTrace();
         }

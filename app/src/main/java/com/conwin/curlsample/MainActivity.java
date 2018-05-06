@@ -6,7 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.conwin.curl.HttpsRequest;
+import com.lyx.curl.network.HttpsRequest;
 
 public class MainActivity extends AppCompatActivity {
     private String mCertPath;

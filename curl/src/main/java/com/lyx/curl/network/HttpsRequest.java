@@ -1,8 +1,8 @@
-package com.conwin.curl;
+package com.lyx.curl.network;
 
 import android.text.TextUtils;
 
-import com.conwin.curl.runnable.LooperKit;
+import com.lyx.curl.runnable.LooperKit;
 import com.google.gson.Gson;
 
 import java.lang.reflect.ParameterizedType;
