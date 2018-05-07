@@ -17,8 +17,8 @@ android {
             }
         }
 
-        ndk{
-            abiFilters "armeabi-v7a"
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a"
         }
     }
 
@@ -51,7 +51,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.google.code.gson:gson:2.8.2'
 }
-
 
 /** 以下开始是将Android Library上传到jcenter的相关配置**/
 
