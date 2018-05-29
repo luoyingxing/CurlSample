@@ -89,7 +89,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
         if (null != elements) {
             for (StackTraceElement stack : elements) {
-                message.append(stack.toString()).append("\n");
+                message.append(stack.toString()).append("<br>");
             }
         }
 
