@@ -70,7 +70,7 @@ public class ExceptionService extends IntentService {
             String[] cpuInfo = getCPUInfo();
             crash.setCpuModel(cpuInfo[0]);
 
-            crash.setSystemVer(Build.MODEL);
+            crash.setSystemVer(Build.VERSION.RELEASE);
             crash.setCpuInstruction(Build.CPU_ABI);
             crash.setCpuInstruction2(Build.CPU_ABI2);
 
