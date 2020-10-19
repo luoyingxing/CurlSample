@@ -28,7 +28,7 @@ set_target_properties(
     crypto
     PROPERTIES IMPORTED_LOCATION
     # change path when ues other computer
-    E:/androidProject/CurlSampleOrign/curl/src/main/cpp/libs/libcrypto.so
+    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcrypto.so
     )
 
 include_directories(
@@ -44,7 +44,7 @@ set_target_properties(
     curl
     PROPERTIES IMPORTED_LOCATION
     # change path when ues other computer
-    E:/androidProject/CurlSampleOrign/curl/src/main/cpp/libs/libcurl.so
+    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcurl.so
     )
 
 include_directories(
@@ -60,7 +60,7 @@ set_target_properties(
     ssl
     PROPERTIES IMPORTED_LOCATION
     # change path when ues other computer
-    E:/androidProject/CurlSampleOrign/curl/src/main/cpp/libs/libssl.so
+    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libssl.so
     )
 
 include_directories(
