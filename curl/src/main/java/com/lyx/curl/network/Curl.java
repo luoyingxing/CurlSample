@@ -96,7 +96,7 @@ public class Curl implements CurlResponse.ResponseListener {
         Iterator<HttpsRequest> iterator = httpsRequestList.iterator();
         while (iterator.hasNext()) {
             HttpsRequest request = iterator.next();
-            if (request.getId() == id) {
+            if (null != request && request.getId() == id) {
                 request.onResponse(status, data);
                 iterator.remove();
             }

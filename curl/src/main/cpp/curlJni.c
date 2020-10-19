@@ -35,7 +35,7 @@ jmethodID g_method_onResponse = NULL;
 #define LOGE(a) __android_log_write(ANDROID_LOG_ERROR, LOG_TAG, a)
 #define LOGW(a) __android_log_write(ANDROID_LOG_WARN, LOG_TAG, a)
 
-#define MAX_BUFFER_LEN 1024
+#define MAX_BUFFER_LEN 2048
 
 /**
  * GET、POST的响应函数
@@ -92,9 +92,9 @@ reqHttps(JNIEnv *env, jint id, jstring sUrl, jstring pem, jstring key, jstring c
     strcat(pAndroidCrt, crtsPath);
 
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
-    char url[255] = {0};
-    sprintf(url, "Access: %s", pUrl);
-    LOGW(url);
+//    char url[255] = {0};
+//    sprintf(url, "Access: %s", pUrl);
+//    LOGW(url);
 
     CURL *curl;
 
@@ -193,9 +193,9 @@ void postHttps(JNIEnv *env, jint id, jstring sUrl, jstring body, jstring pem,
     strcat(pAndroidCrt, crtsPath);
 
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
-    char url[255] = {0};
-    sprintf(url, "Access: %s", pUrl);
-    LOGW(url);
+//    char url[255] = {0};
+//    sprintf(url, "Access: %s", pUrl);
+//    LOGW(url);
 
     CURL *curl;
 
