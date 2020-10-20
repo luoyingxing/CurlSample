@@ -15,7 +15,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        CrashHandler.getInstance().init(this, null, "https://cos.conwin.cn:8443/log/crash");
+        //CrashHandler.getInstance().init(this, null, "https://cos.conwin.cn:8443/log/crash");
 
         Curl.getInstance().initialize(getFilesDir().getAbsolutePath() + "/cert/jingyun.root.pem",
                 getFilesDir().getAbsolutePath() + "/cert/ANDROID.key",

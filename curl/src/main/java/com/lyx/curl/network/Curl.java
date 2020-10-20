@@ -55,18 +55,6 @@ public class Curl implements CurlResponse.ResponseListener {
         this.crtPath = crtPath;
     }
 
-    /**
-     * 暂时不加载，等需要频繁使用CURL时再加载，避免内存资源浪费
-     */
-    private void loadLibrary() {
-        try {
-            System.loadLibrary("curl");
-            System.loadLibrary("curls");
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
     protected String getPemPath() {
         return pemPath;
     }
