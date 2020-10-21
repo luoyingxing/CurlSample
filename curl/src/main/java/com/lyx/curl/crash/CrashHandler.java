@@ -84,7 +84,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         }
 
         final StringBuilder message = new StringBuilder();
-        message.append(e.getMessage()).append("\n");
+        message.append(e.getMessage()).append("<br>");
         StackTraceElement[] elements = e.getStackTrace();
 
         if (null != elements) {
