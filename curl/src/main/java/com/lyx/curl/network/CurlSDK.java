@@ -1,7 +1,5 @@
 package com.lyx.curl.network;
 
-import android.util.Log;
-
 /**
  * CurlSDK
  * <p>
@@ -42,8 +40,6 @@ public class CurlSDK {
         if (null != mResponseListener) {
             mResponseListener.onResponse(id, code, result);
         }
-
-        Log.w("CurlSDK", "id:" + id + "    code:" + code + "    result:" + result);
     }
 
     protected static ResponseListener mResponseListener;

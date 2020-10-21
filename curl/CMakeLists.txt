@@ -11,60 +11,60 @@ cmake_minimum_required(VERSION 3.4.1)
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             curls
+        curls
 
-             # Sets the library as a shared library.
-             SHARED
+        # Sets the library as a shared library.
+        SHARED
 
-             # Provides a relative path to your source file(s).
-             src/main/cpp/curlJni.c )
+        # Provides a relative path to your source file(s).
+        src/main/cpp/curlJni.c)
 
 add_library(
-            crypto
-            STATIC
-            IMPORTED
-            )
+        crypto
+        STATIC
+        IMPORTED
+)
 set_target_properties(
-    crypto
-    PROPERTIES IMPORTED_LOCATION
-    # change path when ues other computer
-    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcrypto.so
-    )
+        crypto
+        PROPERTIES IMPORTED_LOCATION
+        # change path when ues other computer
+        E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcrypto.so
+)
 
 include_directories(
-    src/main/cpp/curl/
+        src/main/cpp/curl/
 )
 
 add_library(
-            curl
-            STATIC
-            IMPORTED
-            )
+        curl
+        STATIC
+        IMPORTED
+)
 set_target_properties(
-    curl
-    PROPERTIES IMPORTED_LOCATION
-    # change path when ues other computer
-    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcurl.so
-    )
+        curl
+        PROPERTIES IMPORTED_LOCATION
+        # change path when ues other computer
+        E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libcurl.so
+)
 
 include_directories(
-   src/main/cpp/curl/
+        src/main/cpp/curl/
 )
 
 add_library(
-            ssl
-            STATIC
-            IMPORTED
-            )
+        ssl
+        STATIC
+        IMPORTED
+)
 set_target_properties(
-    ssl
-    PROPERTIES IMPORTED_LOCATION
-    # change path when ues other computer
-    E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libssl.so
-    )
+        ssl
+        PROPERTIES IMPORTED_LOCATION
+        # change path when ues other computer
+        E:/AndroidStudioProject/CurlSample/curl/src/main/cpp/libs/libssl.so
+)
 
 include_directories(
-    src/main/cpp/curl/
+        src/main/cpp/curl/
 )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -74,21 +74,21 @@ include_directories(
 # completing its build.
 
 find_library( # Sets the name of the path variable.
-              log-lib
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log)
+        log-lib
+        # Specifies the name of the NDK library that
+        # you want CMake to locate.
+        log)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       curls
-                       crypto
-                       curl
-                       ssl
+        curls
+        crypto
+        curl
+        ssl
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib})

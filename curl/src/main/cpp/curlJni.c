@@ -68,10 +68,13 @@ size_t response_data(void *buffer, size_t size, size_t nmemb, void *stream) {
 
 void requestHttps(JNIEnv *env, jint id, jint methods, jstring sUrl, jstring body, jstring pem,
                   jstring key, jstring crt) {
-    CURL *curl;
-
-    curl_global_init(CURL_GLOBAL_ALL);
+    CURL *curl = NULL;
     curl = curl_easy_init();
+
+    if (curl == NULL) {
+        onResponse(env, id, 600, NULL);
+        return;
+    }
 
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
     curl_easy_setopt(curl, CURLOPT_URL, pUrl);
@@ -86,14 +89,15 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jstring sUrl, jstring body
 //    sprintf(url, "%s", pUrl);
 //    LOGW(url);
 
-    curl_easy_setopt(curl, CURLOPT_POST, methods);              //设置问非0表示本次操作为post，methods参数0为GET  1为POST
-    if (methods != 0){
+    //设置问非0表示本次操作为post，methods参数0为GET  1为POST
+    curl_easy_setopt(curl, CURLOPT_POST, methods);
+    if (methods != 0) {
         const char *request_body = (*env)->GetStringUTFChars(env, body, 0);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body);   //post参数
     }
 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);                 //打印调试信息
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);                //请求超时时间(单位S)
+    //curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);                //请求超时时间(单位S)
 
     //设置SSL证书
     const char *pemPath = (*env)->GetStringUTFChars(env, pem, 0);
@@ -121,16 +125,22 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jstring sUrl, jstring body
     if (code == CURLE_OK) {
         long status = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+
         onResponse(env, id, status, receive_data);
-    } else{
+    } else {
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+
         onResponse(env, id, code, NULL);
     }
-
-    curl_easy_cleanup(curl);
 }
 
 JNIEXPORT void JNICALL
-Java_com_lyx_curl_network_CurlSDK_requestHttps(JNIEnv *env, jobject obj, jint id, jint methods, jstring url, jstring body, jstring pen, jstring key, jstring crt) {
+Java_com_lyx_curl_network_CurlSDK_requestHttps(JNIEnv *env, jobject obj, jint id, jint methods,
+                                               jstring url, jstring body, jstring pen, jstring key,
+                                               jstring crt) {
     requestHttps(env, id, methods, url, body, pen, key, crt);
 }
 
@@ -185,7 +195,7 @@ static int registerNatives(JNIEnv *env) {
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     LOGW("curlLib on load");
 
-    JNIEnv * env = NULL;
+    JNIEnv *env = NULL;
     jint result;
     if ((*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_4) != JNI_OK) {
         return -1;
@@ -199,7 +209,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     //加载响应类方法
     jclass tmp = (*env)->FindClass(env, JNI_CurlSDK_CLASS);
-    g_res_class = (jclass)((*env)->NewGlobalRef(env, tmp));
+    g_res_class = (jclass) ((*env)->NewGlobalRef(env, tmp));
 
     if (g_res_class != NULL) {
         g_method_onResponse = (*env)->GetStaticMethodID(env, g_res_class, "onResponse",

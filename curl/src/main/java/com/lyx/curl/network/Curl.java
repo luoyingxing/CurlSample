@@ -10,7 +10,7 @@ import java.util.List;
  * author:  luoyingxing
  * date: 2018/5/2.
  */
-public class Curl implements CurlResponse.ResponseListener {
+public class Curl implements CurlSDK.ResponseListener {
     private volatile static Curl instance;
     private String pemPath;
     private String keyPath;
@@ -20,7 +20,7 @@ public class Curl implements CurlResponse.ResponseListener {
 
     private int requestId;
 
-    public int getFreeRequestId() {
+    protected int getFreeRequestId() {
         return ++requestId;
     }
 
@@ -28,7 +28,7 @@ public class Curl implements CurlResponse.ResponseListener {
         if (null == httpsRequestList) {
             httpsRequestList = new ArrayList<>();
         }
-        CurlResponse.setOnResponseListener(this);
+        CurlSDK.setOnResponseListener(this);
     }
 
     public static Curl getInstance() {
@@ -67,11 +67,24 @@ public class Curl implements CurlResponse.ResponseListener {
         return crtPath;
     }
 
-    protected void addRequest(HttpsRequest request) {
+    protected synchronized void addRequest(HttpsRequest request) {
         if (null == httpsRequestList) {
             httpsRequestList = new ArrayList<>();
         }
         httpsRequestList.add(request);
+    }
+
+    private synchronized void removeRequest(int id, int status, String data) {
+        if (null != httpsRequestList) {
+            Iterator<HttpsRequest> iterator = httpsRequestList.iterator();
+            while (iterator.hasNext()) {
+                HttpsRequest request = iterator.next();
+                if (null != request && request.getId() == id) {
+                    request.onResponse(status, data);
+                    iterator.remove();
+                }
+            }
+        }
     }
 
     @Override
@@ -80,14 +93,6 @@ public class Curl implements CurlResponse.ResponseListener {
             return;
         }
 
-        //多线程操作
-        Iterator<HttpsRequest> iterator = httpsRequestList.iterator();
-        while (iterator.hasNext()) {
-            HttpsRequest request = iterator.next();
-            if (null != request && request.getId() == id) {
-                request.onResponse(status, data);
-                iterator.remove();
-            }
-        }
+        removeRequest(id, status, data);
     }
 }

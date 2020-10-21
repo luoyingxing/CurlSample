@@ -130,9 +130,9 @@ public class HttpsRequest<T> {
                 url = url + "?" + params;
             }
 
-            CurlRequest.getHttps(id, url, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            CurlSDK.requestHttps(id, requestMethod, url, null, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         } else {
-            CurlRequest.postHttps(id, url, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            CurlSDK.requestHttps(id, requestMethod, url, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         }
     }
 
@@ -156,17 +156,16 @@ public class HttpsRequest<T> {
         onFinish();
     }
 
-
     public void onStart() {
     }
 
-    public void onResult(int status, String data) {
+    public void onResult(int code, String data) {
     }
 
     public void onSuccess(T result) {
     }
 
-    public void onFailure(int status, String data) {
+    public void onFailure(int code, String data) {
     }
 
     public void onFinish() {
