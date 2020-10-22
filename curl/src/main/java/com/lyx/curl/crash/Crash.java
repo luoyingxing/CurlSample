@@ -13,6 +13,10 @@ public class Crash extends Info {
      * exception : Java NullException...(奔溃日志)
      */
     private String exception;
+    /**
+     * 生成信息时间
+     */
+    private String time;
 
     public Crash() {
     }
@@ -23,5 +27,13 @@ public class Crash extends Info {
 
     public void setException(String exception) {
         this.exception = exception;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 }

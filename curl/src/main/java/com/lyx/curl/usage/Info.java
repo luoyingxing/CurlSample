@@ -39,7 +39,6 @@ public class Info {
     private String verCode;            //APP版本号
     @SerializedName("package")
     private String packageX;           //APP包名
-    private String time;               //生成信息时间
 
     public String getWidth() {
         return width;
@@ -143,13 +142,5 @@ public class Info {
 
     public void setPackageX(String packageX) {
         this.packageX = packageX;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
     }
 }
