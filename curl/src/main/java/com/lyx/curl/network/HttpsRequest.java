@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.lyx.curl.runnable.LooperKit;
 import com.google.gson.Gson;
+import com.lyx.curl.runnable.ThreadPoolManager;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -112,12 +113,12 @@ public class HttpsRequest<T> {
     }
 
     private void startThreadTask() {
-        new Thread(new Runnable() {
+        ThreadPoolManager.getInstance().execute(new Runnable() {
             @Override
             public void run() {
                 request();
             }
-        }).start();
+        });
     }
 
     private void request() {
