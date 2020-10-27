@@ -97,7 +97,7 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jstring sUrl, jstring body
     }
 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);                 //打印调试信息
-    //curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);                //请求超时时间(单位S)
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);                //请求超时时间(单位S)
 
     //设置SSL证书
     const char *pemPath = (*env)->GetStringUTFChars(env, pem, 0);
