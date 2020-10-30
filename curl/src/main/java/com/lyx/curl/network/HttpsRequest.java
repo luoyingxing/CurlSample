@@ -6,10 +6,8 @@ import com.lyx.curl.runnable.LooperKit;
 import com.google.gson.Gson;
 import com.lyx.curl.runnable.ThreadPoolManager;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +44,11 @@ public class HttpsRequest<T> {
      */
     private int requestMethod;
 
+    /**
+     * 超时时间，默认14秒
+     */
+    private int timeout = 14;
+
     public void onResponse(final int status, final String data) {
         LooperKit.runOnMainThreadAsync(new Runnable() {
             @Override
@@ -60,6 +63,11 @@ public class HttpsRequest<T> {
 
     public HttpsRequest(String url) {
         this.url = url;
+    }
+
+    public HttpsRequest(String url, int time) {
+        this.url = url;
+        this.timeout = time;
     }
 
     public void get() {
@@ -133,19 +141,9 @@ public class HttpsRequest<T> {
                 url = url + "?" + params;
             }
 
-            try {
-                String url_ = URLEncoder.encode(url, "UTF-8");
-                CurlSDK.requestHttps(id, requestMethod, url_, null, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            CurlSDK.requestHttps(id, requestMethod, timeout, url, null, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         } else {
-            try {
-                String url_ = URLEncoder.encode(url, "UTF-8");
-                CurlSDK.requestHttps(id, requestMethod, url_, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            CurlSDK.requestHttps(id, requestMethod, timeout, url, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         }
     }
 

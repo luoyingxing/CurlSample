@@ -66,7 +66,8 @@ size_t response_data(void *buffer, size_t size, size_t nmemb, void *stream) {
     return size * nmemb;
 }
 
-void requestHttps(JNIEnv *env, jint id, jint methods, jstring sUrl, jstring body, jstring pem,
+void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl, jstring body,
+                  jstring pem,
                   jstring key, jstring crt) {
     CURL *curl = NULL;
     curl = curl_easy_init();
@@ -97,7 +98,7 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jstring sUrl, jstring body
     }
 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);                 //打印调试信息
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);                //请求超时时间(单位S)
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);           //请求超时时间(单位S)
 
     //设置SSL证书
     const char *pemPath = (*env)->GetStringUTFChars(env, pem, 0);
@@ -139,9 +140,10 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jstring sUrl, jstring body
 
 JNIEXPORT void JNICALL
 Java_com_lyx_curl_network_CurlSDK_requestHttps(JNIEnv *env, jobject obj, jint id, jint methods,
+                                               jint timeout,
                                                jstring url, jstring body, jstring pen, jstring key,
                                                jstring crt) {
-    requestHttps(env, id, methods, url, body, pen, key, crt);
+    requestHttps(env, id, methods, timeout, url, body, pen, key, crt);
 }
 
 static JNINativeMethod methods[] = {
