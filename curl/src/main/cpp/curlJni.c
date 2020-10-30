@@ -147,7 +147,7 @@ Java_com_lyx_curl_network_CurlSDK_requestHttps(JNIEnv *env, jobject obj, jint id
 }
 
 static JNINativeMethod methods[] = {
-        {"requestHttps", "(IILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) Java_com_lyx_curl_network_CurlSDK_requestHttps}
+        {"requestHttps", "(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) Java_com_lyx_curl_network_CurlSDK_requestHttps}
 };
 
 /**
