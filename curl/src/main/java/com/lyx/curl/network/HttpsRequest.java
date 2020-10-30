@@ -6,8 +6,10 @@ import com.lyx.curl.runnable.LooperKit;
 import com.google.gson.Gson;
 import com.lyx.curl.runnable.ThreadPoolManager;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -131,9 +133,19 @@ public class HttpsRequest<T> {
                 url = url + "?" + params;
             }
 
-            CurlSDK.requestHttps(id, requestMethod, url, null, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            try {
+                String url_ = URLEncoder.encode(url, "UTF-8");
+                CurlSDK.requestHttps(id, requestMethod, url_, null, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         } else {
-            CurlSDK.requestHttps(id, requestMethod, url, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            try {
+                String url_ = URLEncoder.encode(url, "UTF-8");
+                CurlSDK.requestHttps(id, requestMethod, url_, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
     }
 
