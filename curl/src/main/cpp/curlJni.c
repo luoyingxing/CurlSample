@@ -25,8 +25,6 @@ extern "C"{
 #define JNI_CurlSDK_CLASS "com/lyx/curl/network/CurlSDK"
 #define LOG_TAG "CurlLib"
 
-#define MAX_BUFFER_LEN 2048
-
 jclass g_res_class = NULL;
 jmethodID g_method_onResponse = NULL;
 
@@ -35,6 +33,10 @@ jmethodID g_method_onResponse = NULL;
 #define LOGE(a) __android_log_write(ANDROID_LOG_ERROR, LOG_TAG, a)
 #define LOGW(a) __android_log_write(ANDROID_LOG_WARN, LOG_TAG, a)
 
+struct ReceiveStruct {
+    char *memory;
+    size_t size;
+};
 
 /**
  * 请求响应函数
@@ -59,11 +61,24 @@ void onResponse(JNIEnv *env, jint id, jint code, jstring data) {
  * @param stream
  * @return
  */
-size_t response_data(void *buffer, size_t size, size_t nmemb, void *stream) {
-    if (size * nmemb < MAX_BUFFER_LEN) {
-        memcpy((char *) stream, (char *) buffer, size * nmemb);
+size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
+    size_t realSize = size * nmemb;
+    struct ReceiveStruct *mem = (struct ReceiveStruct *) userp;
+
+    // 注意这里根据每次被调用获得的数据重新动态分配缓存区的大小
+    char *ptr = realloc(mem->memory, mem->size + realSize + 1);
+    if (ptr == NULL) {
+        /* out of memory! */
+        LOGE("Not Enough Memory (realloc returned NULL)");
+        return 0;
     }
-    return size * nmemb;
+
+    mem->memory = ptr;
+    memcpy(&(mem->memory[mem->size]), contents, realSize);
+    mem->size += realSize;
+    mem->memory[mem->size] = 0;
+
+    return realSize;
 }
 
 void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl, jstring body,
@@ -116,10 +131,13 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
     curl_easy_setopt(curl, CURLOPT_SSLKEY, pAndroidKey);
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
 
+    struct ReceiveStruct chunk;
+    chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    chunk.size = 0;    /* no data at this point */
+
     //设置数据回调函数
-    char receive_data[MAX_BUFFER_LEN] = {0};
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, response_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &receive_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &chunk);
 
     CURLcode code = curl_easy_perform(curl);  //code为处理结果，不是响应码
 
@@ -129,13 +147,15 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
-        onResponse(env, id, status, receive_data);
+        onResponse(env, id, status, chunk.memory);
     } else {
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
         onResponse(env, id, code, NULL);
     }
+
+    free(chunk.memory);
 }
 
 JNIEXPORT void JNICALL
