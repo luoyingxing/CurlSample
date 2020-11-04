@@ -46,10 +46,12 @@ struct ReceiveStruct {
  * @param code
  * @param data
  */
-void onResponse(JNIEnv *env, jint id, jint code, jstring data) {
+void onResponse(JNIEnv *env, jint id, jint code, jstring headerData, jstring data) {
     if (g_method_onResponse != NULL && g_res_class != NULL) {
+        jstring header = (*env)->NewStringUTF(env, headerData);
         jstring result = (*env)->NewStringUTF(env, data);
-        (*env)->CallStaticVoidMethod(env, g_res_class, g_method_onResponse, id, code, result);
+        (*env)->CallStaticVoidMethod(env, g_res_class, g_method_onResponse, id, code, header,
+                                     result);
     }
 }
 
@@ -88,7 +90,7 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
     curl = curl_easy_init();
 
     if (curl == NULL) {
-        onResponse(env, id, 600, NULL);
+        onResponse(env, id, 600, NULL, NULL);
         return;
     }
 
@@ -131,13 +133,21 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
     curl_easy_setopt(curl, CURLOPT_SSLKEY, pAndroidKey);
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
 
-    struct ReceiveStruct chunk;
-    chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */
-    chunk.size = 0;    /* no data at this point */
+    struct ReceiveStruct responseData;
+    responseData.memory = malloc(1);
+    responseData.size = 0;
+
+    struct ReceiveStruct responseHeader;
+    responseHeader.memory = malloc(1);
+    responseHeader.size = 0;
 
     //设置数据回调函数
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &chunk);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &responseData);
+
+    //设置响应头函数
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, write_data);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, (void *) &responseHeader);
 
     CURLcode code = curl_easy_perform(curl);  //code为处理结果，不是响应码
 
@@ -147,15 +157,16 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
-        onResponse(env, id, status, chunk.memory);
+        onResponse(env, id, status, responseHeader.memory, responseData.memory);
     } else {
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
-        onResponse(env, id, code, NULL);
+        onResponse(env, id, code, NULL, NULL);
     }
 
-    free(chunk.memory);
+    free(responseHeader.memory);
+    free(responseData.memory);
 }
 
 JNIEXPORT void JNICALL
@@ -235,7 +246,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     if (g_res_class != NULL) {
         g_method_onResponse = (*env)->GetStaticMethodID(env, g_res_class, "onResponse",
-                                                        "(IILjava/lang/String;)V");
+                                                        "(IILjava/lang/String;Ljava/lang/String;)V");
     }
 
     LOGW("curl global init");

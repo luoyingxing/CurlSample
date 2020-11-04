@@ -49,11 +49,11 @@ public class HttpsRequest<T> {
      */
     private int timeout = 14;
 
-    public void onResponse(final int status, final String data) {
+    public void onResponse(final int status, final String header, final String data) {
         LooperKit.runOnMainThreadAsync(new Runnable() {
             @Override
             public void run() {
-                parseData(status, data);
+                parseData(status, header, data);
             }
         });
     }
@@ -147,8 +147,8 @@ public class HttpsRequest<T> {
         }
     }
 
-    private void parseData(int status, String data) {
-        onResult(status, data);
+    private void parseData(int status, String header, String data) {
+        onResult(status, header, data);
 
         if (200 == status) {
             T obj = null;
@@ -170,7 +170,7 @@ public class HttpsRequest<T> {
     public void onStart() {
     }
 
-    public void onResult(int code, String data) {
+    public void onResult(int code, String header, String data) {
     }
 
     public void onSuccess(T result) {

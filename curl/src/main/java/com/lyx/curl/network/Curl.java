@@ -74,13 +74,13 @@ public class Curl implements CurlSDK.ResponseListener {
         httpsRequestList.add(request);
     }
 
-    private synchronized void removeRequest(int id, int status, String data) {
+    private synchronized void removeRequest(int id, int status, String header, String data) {
         if (null != httpsRequestList) {
             Iterator<HttpsRequest> iterator = httpsRequestList.iterator();
             while (iterator.hasNext()) {
                 HttpsRequest request = iterator.next();
                 if (null != request && request.getId() == id) {
-                    request.onResponse(status, data);
+                    request.onResponse(status, header, data);
                     iterator.remove();
                 }
             }
@@ -88,11 +88,11 @@ public class Curl implements CurlSDK.ResponseListener {
     }
 
     @Override
-    public void onResponse(int id, int status, String data) {
+    public void onResponse(int id, int status, String header, String data) {
         if (null == httpsRequestList) {
             return;
         }
 
-        removeRequest(id, status, data);
+        removeRequest(id, status, header, data);
     }
 }

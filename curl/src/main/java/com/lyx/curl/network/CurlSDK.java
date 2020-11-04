@@ -35,18 +35,19 @@ public class CurlSDK {
      *
      * @param id     请求ID
      * @param code   响应码
+     * @param header 响应头
      * @param result 响应体
      */
-    protected static void onResponse(int id, int code, String result) {
+    protected static void onResponse(int id, int code, String header, String result) {
         if (null != mResponseListener) {
-            mResponseListener.onResponse(id, code, result);
+            mResponseListener.onResponse(id, code, header, result);
         }
     }
 
     protected static ResponseListener mResponseListener;
 
     protected interface ResponseListener {
-        void onResponse(int id, int code, String result);
+        void onResponse(int id, int code, String header, String result);
     }
 
     protected static void setOnResponseListener(ResponseListener listener) {
