@@ -78,7 +78,7 @@ public class HttpsRequest<T> {
 
     private static final String ContentType = "application/json; charset=utf-8";
 
-    private void init() {
+    protected void init() {
         //默认加上ContentType请求头
         addHeader("Content-Type", ContentType);
     }
