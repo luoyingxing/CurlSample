@@ -46,12 +46,14 @@ struct ReceiveStruct {
  * @param code
  * @param data
  */
-void onResponse(JNIEnv *env, jint id, jint code, jstring headerData, jstring data) {
+void onResponse(JNIEnv *env, jint id, jint code, char *headerData, char *data) {
     if (g_method_onResponse != NULL && g_res_class != NULL) {
         jstring header = (*env)->NewStringUTF(env, headerData);
         jstring result = (*env)->NewStringUTF(env, data);
         (*env)->CallStaticVoidMethod(env, g_res_class, g_method_onResponse, id, code, header,
                                      result);
+        (*env)->DeleteLocalRef(env, header);
+        (*env)->DeleteLocalRef(env, result);
     }
 }
 
@@ -67,10 +69,9 @@ size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realSize = size * nmemb;
     struct ReceiveStruct *mem = (struct ReceiveStruct *) userp;
 
-    // 注意这里根据每次被调用获得的数据重新动态分配缓存区的大小
+    //根据每次被调用获得的数据重新动态分配缓存区的大小
     char *ptr = realloc(mem->memory, mem->size + realSize + 1);
     if (ptr == NULL) {
-        /* out of memory! */
         LOGE("Not Enough Memory (realloc returned NULL)");
         return 0;
     }
@@ -83,9 +84,8 @@ size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
     return realSize;
 }
 
-void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl, jstring body,
-                  jstring pem,
-                  jstring key, jstring crt) {
+void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl,
+                  jobjectArray headerArray, jstring body, jstring pem, jstring key, jstring crt) {
     CURL *curl = NULL;
     curl = curl_easy_init();
 
@@ -94,25 +94,52 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
         return;
     }
 
+    //设置请求的地址
     const char *pUrl = (*env)->GetStringUTFChars(env, sUrl, 0);
     curl_easy_setopt(curl, CURLOPT_URL, pUrl);
 
+    //设置请求头
     struct curl_slist *headers = NULL;
-    headers = curl_slist_append(headers, "Accept:application/json");
-    headers = curl_slist_append(headers, "Content-Type:application/json");
-    headers = curl_slist_append(headers, "charset:utf-8");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    if (headerArray != NULL) {
+        int headerLen = (*env)->GetArrayLength(env, headerArray);
+        for (int i = 0; i < headerLen; i++) {
+            if (i % 2 == 0) { //key:value 取双数的为key
+                jobject keyObj = (*env)->GetObjectArrayElement(env, headerArray, i);
+                const char *header_key = (*env)->GetStringUTFChars(env, (jstring) keyObj, 0);
 
-//    char url[255] = {0};
-//    sprintf(url, "%s", pUrl);
-//    LOGW(url);
+                jobject valueObj = (*env)->GetObjectArrayElement(env, headerArray, i + 1);
+                const char *header_value = (*env)->GetStringUTFChars(env, (jstring) valueObj, 0);
+
+                char header[255] = {0};
+                sprintf(header, "%s:%s", header_key, header_value);
+                headers = curl_slist_append(headers, header);
+
+                (*env)->ReleaseStringUTFChars(env, keyObj, header_key);
+                (*env)->ReleaseStringUTFChars(env, valueObj, header_value);
+                (*env)->DeleteLocalRef(env, keyObj);
+                (*env)->DeleteLocalRef(env, valueObj);
+            }
+        }
+
+        if (headers != NULL) {
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        }
+    }
 
     //设置问非0表示本次操作为post，methods参数0为GET  1为POST
     curl_easy_setopt(curl, CURLOPT_POST, methods);
     if (methods != 0) {
         const char *request_body = (*env)->GetStringUTFChars(env, body, 0);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body);   //post参数
+        if (request_body != NULL) {
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body);   //post参数
+
+            (*env)->ReleaseStringUTFChars(env, body, request_body);
+        }
     }
+
+//  char reqBody[255] = {0};
+//  sprintf(reqBody, "request body: %s", request_body);
+//  LOGD(reqBody);
 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);                 //打印调试信息
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);           //请求超时时间(单位S)
@@ -165,20 +192,25 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
         onResponse(env, id, code, NULL, NULL);
     }
 
+
+    (*env)->ReleaseStringUTFChars(env, sUrl, pUrl);
+    (*env)->ReleaseStringUTFChars(env, pem, pemPath);
+    (*env)->ReleaseStringUTFChars(env, key, keyPath);
+    (*env)->ReleaseStringUTFChars(env, crt, crtsPath);
     free(responseHeader.memory);
     free(responseData.memory);
 }
 
 JNIEXPORT void JNICALL
 Java_com_lyx_curl_network_CurlSDK_requestHttps(JNIEnv *env, jobject obj, jint id, jint methods,
-                                               jint timeout,
-                                               jstring url, jstring body, jstring pen, jstring key,
+                                               jint timeout, jstring url, jobjectArray headers,
+                                               jstring body, jstring pen, jstring key,
                                                jstring crt) {
-    requestHttps(env, id, methods, timeout, url, body, pen, key, crt);
+    requestHttps(env, id, methods, timeout, url, headers, body, pen, key, crt);
 }
 
 static JNINativeMethod methods[] = {
-        {"requestHttps", "(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) Java_com_lyx_curl_network_CurlSDK_requestHttps}
+        {"requestHttps", "(IIILjava/lang/String;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) Java_com_lyx_curl_network_CurlSDK_requestHttps}
 };
 
 /**

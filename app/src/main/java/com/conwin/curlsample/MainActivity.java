@@ -9,6 +9,8 @@ import android.widget.TextView;
 import com.lyx.curl.network.HttpsRequest;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+
     private String mCertPath;
     private TextView tv;
 
@@ -35,19 +37,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStart() {
                 super.onStart();
-                Log.i("MainActivity", "onStart()");
+                Log.i(TAG, "onStart()");
             }
 
             @Override
             public void onSuccess(Object result) {
                 super.onSuccess(result);
-                Log.i("MainActivity", "onSuccess()");
+                Log.i(TAG, "onSuccess()");
             }
 
             @Override
-            public void onResult(int status, String data) {
-                super.onResult(status, data);
-                Log.i("onResult", "onResult() status:" + status + "  data:" + data);
+            public void onResult(int status, String header, String data) {
+                super.onResult(status, header, data);
+                Log.w(TAG, header);
+                Log.i(TAG, "onResult() status:" + status + "  data:" + data);
                 tv.append("\nget\n");
                 tv.append(data);
             }
@@ -55,13 +58,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 super.onFinish();
-                Log.i("MainActivity", "onFinish()");
+                Log.i(TAG, "onFinish()");
             }
 
             @Override
             public void onFailure(int status, String data) {
                 super.onFailure(status, data);
-                Log.i("MainActivity", "onFailure()");
+                Log.i(TAG, "onFailure()");
             }
 
         }.addParam("opid", "test")
@@ -72,19 +75,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStart() {
                 super.onStart();
-                Log.i("MainActivity----", "onStart()");
+                Log.i(TAG, "onStart()");
             }
 
             @Override
             public void onSuccess(Object result) {
                 super.onSuccess(result);
-                Log.i("MainActivity----", "onSuccess()");
+                Log.i(TAG, "onSuccess()");
             }
 
             @Override
-            public void onResult(int status, String data) {
-                super.onResult(status, data);
-                Log.i("onResult----", "onResult() status:" + status + "  data:" + data);
+            public void onResult(int status, String header, String data) {
+                super.onResult(status, header, data);
+                Log.w(TAG, "" + header);
+                Log.i(TAG, "onResult() status:" + status + "  data:" + data);
                 tv.append("\npost\n");
                 tv.append(data == null ? "data is null" : data);
             }
@@ -92,16 +96,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 super.onFinish();
-                Log.i("MainActivity----", "onFinish()");
+                Log.i(TAG, "onFinish()");
             }
 
             @Override
             public void onFailure(int status, String data) {
                 super.onFailure(status, data);
-                Log.i("MainActivity----", "onFailure()");
+                Log.i(TAG, "onFailure()");
             }
 
-        }.addBody(body)
+        }
+                .addBody(body)
+//                .addParam("width", "1080")
+//                .addParam("height", "1920")
+//                .addParam("exception", "Test ...")
+//                .addParam("phoneIMEI", "8751615615656")
+//                .addParam("verName", "1.0")
+//                .addParam("verCode", "1")
+//                .addParam("package", "con.conwin.smartalarm")
+//                .addParam("phoneBrand", "honor")
+//                .addParam("systemVer", "4.0")
+//                .addParam("cpuModel", "aarch64")
+//                .addParam("time", "2020-11-05 12:15:01")
+//                .addParam("root", "false")
                 .post();
     }
 

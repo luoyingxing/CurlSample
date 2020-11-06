@@ -43,11 +43,18 @@ public class HttpsRequest<T> {
      * 1 POST
      */
     private int requestMethod;
-
     /**
      * 超时时间，默认14秒
      */
     private int timeout = 14;
+    /**
+     * 存放请求头的map
+     */
+    private Map<String, String> mHeader = new HashMap<>();
+    /**
+     * 存放请求参数的map
+     */
+    private Map<String, Object> mParamKeyValues = new HashMap<>();
 
     public void onResponse(final int status, final String header, final String data) {
         LooperKit.runOnMainThreadAsync(new Runnable() {
@@ -58,16 +65,22 @@ public class HttpsRequest<T> {
         });
     }
 
-    public HttpsRequest() {
-    }
-
     public HttpsRequest(String url) {
         this.url = url;
+        init();
     }
 
     public HttpsRequest(String url, int time) {
         this.url = url;
         this.timeout = time;
+        init();
+    }
+
+    private static final String ContentType = "application/json; charset=utf-8";
+
+    private void init() {
+        //默认加上ContentType请求头
+        addHeader("Content-Type", ContentType);
     }
 
     public void get() {
@@ -90,24 +103,42 @@ public class HttpsRequest<T> {
         startThreadTask();
     }
 
-    private Map<String, Object> mParamKeyValues;
+    /**
+     * 添加请求头
+     *
+     * @param key   key
+     * @param value value
+     * @return 当前请求对象
+     */
+    public HttpsRequest addHeader(String key, String value) {
+        mHeader.put(key, value);
+        return this;
+    }
 
-    public HttpsRequest addParam(String key, String value) {
-        if (null == mParamKeyValues) {
-            mParamKeyValues = new HashMap<>();
-        }
-
+    /**
+     * 添加请求参数
+     *
+     * @param key   key
+     * @param value value
+     * @return 当前请求对象
+     */
+    public HttpsRequest addParam(String key, Object value) {
         mParamKeyValues.put(key, value);
         return this;
     }
 
-    private String paramsToString(Map<String, Object> params) {
+    /**
+     * GET
+     *
+     * @param params
+     * @return
+     */
+    protected String paramsToString(Map<String, Object> params) {
         if (null == params) {
             return null;
         }
 
         StringBuilder builder = new StringBuilder();
-
         for (String key : params.keySet()) {
             builder.append(key);
             builder.append('=');
@@ -120,6 +151,46 @@ public class HttpsRequest<T> {
         }
 
         return builder.toString();
+    }
+
+    /**
+     * POST
+     *
+     * @param params
+     * @return
+     */
+    protected String paramsToJson(Map<String, Object> params) {
+        if (null == params) {
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+
+        for (String key : params.keySet()) {
+            builder.append('\"');
+            builder.append(key);
+            builder.append('\"');
+            builder.append(':');
+
+            Object value = params.get(key);
+            if (value instanceof String) {
+                builder.append('\"');
+                builder.append(value);
+                builder.append('\"');
+            } else {
+                builder.append(value);
+            }
+            builder.append(",");
+        }
+
+        if (builder.length() > 1) {
+            builder = builder.deleteCharAt(builder.length() - 1);
+            builder.append("}");
+            return builder.toString();
+        }
+
+        return null;
     }
 
     private void startThreadTask() {
@@ -135,15 +206,31 @@ public class HttpsRequest<T> {
         setId(Curl.getInstance().getFreeRequestId());
         Curl.getInstance().addRequest(this);
 
+        String[] headers;
+        if (null != mHeader && mHeader.size() > 0) {
+            headers = new String[mHeader.size() * 2];
+            int i = 0;
+            for (String key : mHeader.keySet()) {
+                headers[2 * i] = key;
+                headers[2 * i + 1] = mHeader.get(key);
+                i++;
+            }
+        } else {
+            headers = new String[]{};
+        }
+
         if (0 == requestMethod) {
             String params = paramsToString(mParamKeyValues);
             if (!TextUtils.isEmpty(params)) {
                 url = url + "?" + params;
             }
 
-            CurlSDK.requestHttps(id, requestMethod, timeout, url, null, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            CurlSDK.requestHttps(id, requestMethod, timeout, url, headers, null, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         } else {
-            CurlSDK.requestHttps(id, requestMethod, timeout, url, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
+            if (null == body) {
+                body = paramsToJson(mParamKeyValues);
+            }
+            CurlSDK.requestHttps(id, requestMethod, timeout, url, headers, body, Curl.getInstance().getPemPath(), Curl.getInstance().getKeyPath(), Curl.getInstance().getCrtPath());
         }
     }
 
@@ -185,12 +272,15 @@ public class HttpsRequest<T> {
 
     private Type getType() {
         Type genericSuperclass = getClass().getGenericSuperclass();
-        if (genericSuperclass instanceof Class) {
-            throw new RuntimeException("Missing type parameter.");
+        if (genericSuperclass instanceof ParameterizedType) {
+            //参数化类型
+            ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+            //返回表示此类型实际类型参数的 Type 对象的数组
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            return actualTypeArguments[0];
         }
-        ParameterizedType genericSuperclassType = (ParameterizedType) genericSuperclass;
-        Type[] actualTypeArguments = genericSuperclassType.getActualTypeArguments();
-        return actualTypeArguments[0];
+
+        return genericSuperclass;
     }
 
 }
