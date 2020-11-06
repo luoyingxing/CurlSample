@@ -128,12 +128,11 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
 
     //设置问非0表示本次操作为post，methods参数0为GET  1为POST
     curl_easy_setopt(curl, CURLOPT_POST, methods);
+    const char *request_body = NULL;
     if (methods != 0) {
-        const char *request_body = (*env)->GetStringUTFChars(env, body, 0);
+        request_body = (*env)->GetStringUTFChars(env, body, 0);
         if (request_body != NULL) {
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body);   //post参数
-
-            (*env)->ReleaseStringUTFChars(env, body, request_body);
         }
     }
 
@@ -192,8 +191,8 @@ void requestHttps(JNIEnv *env, jint id, jint methods, jint timeout, jstring sUrl
         onResponse(env, id, code, NULL, NULL);
     }
 
-
     (*env)->ReleaseStringUTFChars(env, sUrl, pUrl);
+    (*env)->ReleaseStringUTFChars(env, body, request_body);
     (*env)->ReleaseStringUTFChars(env, pem, pemPath);
     (*env)->ReleaseStringUTFChars(env, key, keyPath);
     (*env)->ReleaseStringUTFChars(env, crt, crtsPath);
